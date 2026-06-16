@@ -565,10 +565,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input class="form-input" type="tel" name="phone" placeholder="Телефон за връзка" required>
       <button class="btn-submit" type="submit" id="btnTop">ПОРЪЧАЙ СЕГА — €18.40</button>
     </form>
-    <div class="form-success" id="successTop">
-      <div class="s-icon">✓</div>
-      <h3>Поръчката е приета!</h3>
-      <p>Ще се свържем с теб до 24 часа<br>за потвърждение и доставка.</p>
+    <div class="form-success purchase-landing" id="successTop" style="display:none;">
+      <div class="s-icon" style="font-size:36px;color:#4A8A6A;margin-bottom:12px;">✓</div>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:8px;">Благодарим за поръчката!</h3>
+      <p style="font-size:13px;color:#7A6E60;line-height:1.7;">Ще се свържем с теб в рамките на 24 часа<br>за потвърждение и детайли за доставката.</p>
     </div>
     <div class="form-trust">🔒 Данните ти са защитени · Плащане при доставка</div>
   </div>
@@ -908,13 +908,104 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input class="form-input" type="tel" name="phone" placeholder="Телефон за връзка" required>
       <button class="btn-submit" type="submit" id="btnBottom">ПОРЪЧАЙ СЕГА — €18.40</button>
     </form>
-    <div class="form-success" id="successBottom">
-      <div class="s-icon">✓</div>
-      <h3>Поръчката е приета!</h3>
-      <p>Ще се свържем с теб до 24 часа<br>за потвърждение и доставка.</p>
+    <div class="form-success purchase-landing" id="successBottom" style="display:none;">
+      <div class="s-icon" style="font-size:36px;color:#4A8A6A;margin-bottom:12px;">✓</div>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:8px;">Благодарим за поръчката!</h3>
+      <p style="font-size:13px;color:#7A6E60;line-height:1.7;">Ще се свържем с теб в рамките на 24 часа<br>за потвърждение и детайли за доставката.</p>
     </div>
     <div class="form-trust">🔒 Данните ти са защитени · Плащане при доставка</div>
   </div>
 </div>
 
 
+
+
+<!-- ═══ FOOTER ═══ -->
+<footer style="background:#1E1A14;padding:32px 20px 48px;text-align:center;border-top:1px solid rgba(255,255,255,0.05);">
+  <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:10px;">Jarvànt</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.22);line-height:1.8;">Natural Skincare · Биотехнологични формули<br>jarvantskincare.com</div>
+  <div style="display:flex;justify-content:center;gap:20px;margin-top:14px;flex-wrap:wrap;">
+    <a href="https://jarvantskincare.com/pages/faq" style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.22);text-decoration:none;">FAQ</a>
+    <a href="https://jarvantskincare.com/pages/contact" style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.22);text-decoration:none;">Контакти</a>
+    <a href="https://jarvantskincare.com/pages/our-story" style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.22);text-decoration:none;">За нас</a>
+    <a href="https://www.instagram.com/jarvantskincare/" style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.22);text-decoration:none;">Instagram</a>
+  </div>
+</footer>
+
+<script>
+async function submitForm(e, id) {
+  e.preventDefault();
+
+  const isTop = id === 'top';
+  const form  = document.getElementById(isTop ? 'formTop' : 'formBottom');
+  const btn   = document.getElementById(isTop ? 'btnTop' : 'btnBottom');
+  const succ  = document.getElementById(isTop ? 'successTop' : 'successBottom');
+
+  btn.textContent = 'Изпращане...';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(Object.fromEntries(new FormData(form)))
+    });
+    const json = await res.json();
+
+    if (json.success) {
+      // Скриваме формата — без презареждане
+      form.style.display = 'none';
+      btn.style.display  = 'none';
+      succ.style.display = 'block';
+
+      // Facebook Pixel — Purchase
+      if (typeof fbq !== 'undefined') {
+        fbq('track', 'Purchase', {
+          value: 18.40,
+          currency: 'EUR',
+          content_name: 'Discover Jarvant Set Travel Size',
+          content_type: 'product',
+          content_ids: ['discover-jarvant-set-travel-size']
+        });
+      }
+
+      // Google Ads — Conversion
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'conversion', {
+          send_to: 'AW-17669763650',
+          value: 18.40,
+          currency: 'EUR',
+          transaction_id: Date.now().toString()
+        });
+      }
+
+      // GTM dataLayer — Purchase event с цена
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'purchase',
+        ecommerce: {
+          transaction_id: Date.now().toString(),
+          value: 18.40,
+          currency: 'EUR',
+          items: [{
+            item_id: 'discover-jarvant-set-travel-size',
+            item_name: 'Discover Jarvant Set Travel Size',
+            price: 18.40,
+            quantity: 1
+          }]
+        }
+      });
+
+    } else {
+      btn.textContent = 'Опитай отново';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    btn.textContent = 'Опитай отново';
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>
